@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Swap two scene slots in SolidJS and see how two bridges handle the order of their HTML labels.">
+  <title>Cross-renderer label order | SolidJS</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="dist/label-order-demo.js"></script>
+</head>
+<body>
+  <main>
+    <header class="bar">
+      <span>SolidJS <span class="version">2.0.3</span></span>
+      <a href="https://github.com/solidjs/solid/discussions/5165">Discussion #5165</a>
+    </header>
+    <div class="intro">
+      <div>
+        <h1>Do labels follow the scene?</h1>
+        <p>Swap two scene slots and compare the HTML labels beneath them.</p>
+      </div>
+      <button id="swap" type="button" disabled>Swap A and B</button>
+    </div>
+    <noscript>Enable JavaScript to swap the slots in both examples.</noscript>
+    <div class="examples">
+      <section aria-labelledby="heading-mount-only">
+        <h2 id="heading-mount-only">Mount labels once</h2>
+        <div id="mount-only"></div>
+        <a class="source" href="examples/mount-only.js">View mount-only code</a>
+      </section>
+      <section aria-labelledby="heading-sync-label-order">
+        <h2 id="heading-sync-label-order">Move labels with their slots</h2>
+        <div id="sync-label-order"></div>
+        <a class="source" href="examples/sync-label-order.js">View reorder code</a>
+      </section>
+    </div>
+    <aside>
+      <h2>Who keeps the labels in order?</h2>
+      <p>Both examples reorder the scene slots. The second bridge also moves each existing label with <code>insertBefore</code>. Should Solid keep a shared overlay in sync, or should each bridge handle that?</p>
+    </aside>
+  </main>
+</body>
+</html>

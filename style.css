@@ -1,0 +1,70 @@
+/* The same object colors identify A and B in the scene and HTML overlay. */
+:root {
+  color-scheme: light;
+  --paper: #f7f8fa;
+  --surface: #ffffff;
+  --stage: #f3f6f8;
+  --ink: #172b38;
+  --muted: #4e626e;
+  --rule: #d3dde2;
+  --grid: #dce5ea;
+  --a: #865122;
+  --a-top: #f6dfbf;
+  --a-left: #e9c9a0;
+  --a-right: #d9b182;
+  --b: #225c76;
+  --b-face: #cee3ec;
+  --hover: #2b4555;
+  --sans: "Inter", "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 var(--sans); }
+main { width: min(1080px, calc(100% - 64px)); margin: auto; padding-bottom: 40px; }
+h1, h2, p { margin: 0; }
+h1, h2 { min-width: 0; overflow-wrap: break-word; text-wrap: balance; font-weight: 620; }
+h1 { font-size: clamp(32px, 4vw, 48px); line-height: 1.08; letter-spacing: -.045em; }
+h2 { font-size: 20px; line-height: 1.35; letter-spacing: -.025em; }
+a { color: var(--muted); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+a:hover { color: var(--ink); }
+:focus-visible { outline: 3px solid var(--b); outline-offset: 4px; }
+.bar { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
+.bar > span { font-weight: 650; }
+.bar a, .source { font-size: 14px; }
+.version { margin-left: 4px; color: var(--muted); font: 13px var(--mono); }
+.intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 40px 0 28px; }
+.intro p { margin-top: 8px; color: var(--muted); }
+button { min-height: 44px; flex-shrink: 0; padding: 10px 18px; border: 0; border-radius: 5px; background: var(--ink); color: var(--surface); font: 600 15px/1.5 var(--sans); cursor: pointer; }
+button:hover { background: var(--hover); }
+button:active { background: var(--b); }
+button:disabled { opacity: .55; cursor: wait; }
+.examples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); }
+section { min-width: 0; padding: 24px; }
+section + section { border-left: 1px solid var(--rule); }
+.stage { margin-top: 16px; }
+.plot { background: var(--stage); border-radius: 4px; overflow: hidden; }
+.row-name { color: var(--muted); font-size: 14px; }
+.plot .row-name { padding: 10px 12px 0; }
+canvas { display: block; width: 100%; height: auto; }
+.overlay-title { margin: 16px 0 6px; }
+.overlay { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.overlay label { padding: 6px 4px; border-block: 1px solid var(--rule); text-align: center; font-weight: 600; font-size: 15px; }
+[data-id="A"] { color: var(--a); }
+[data-id="B"] { color: var(--b); }
+output { display: block; margin-top: 16px; color: var(--muted); font-size: 14px; font-weight: 600; }
+output[data-match="false"] { color: var(--a); }
+.source { display: inline-block; margin-top: 4px; }
+aside { display: grid; grid-template-columns: minmax(210px, 1fr) 2fr; align-items: baseline; gap: 24px; padding: 24px 0; }
+aside h2 { font-size: 18px; }
+aside p { max-width: 68ch; color: var(--muted); text-wrap: pretty; }
+code { color: var(--ink); font: .92em var(--mono); }
+@media (max-width: 720px) {
+  main { width: calc(100% - 32px); }
+  .intro { display: grid; gap: 16px; padding: 24px 0; }
+  button { justify-self: start; }
+  .examples, aside { grid-template-columns: minmax(0, 1fr); }
+  section { padding: 16px; }
+  section + section { border-left: 0; border-top: 1px solid var(--rule); }
+  aside { gap: 8px; }
+}
