@@ -2,7 +2,7 @@
 
 This SolidJS 2.0 demo reproduces the shared-overlay ordering case from [Solid Discussion #5165 — Investigate cross-renderer composition guarantees in Solid 2.0](https://github.com/solidjs/solid/discussions/5165).
 
-Clone or download this repository, open **index.html** in a browser, and click **Swap A and B**. The compiled demo is included and runs offline.
+Open the [live demo](https://rickyraz.github.io/solid-cross-renderer-order/) and click **Swap A and B** to compare the two bridges. To try it offline, clone or download this repository and open **index.html**.
 
 ## What moves?
 
