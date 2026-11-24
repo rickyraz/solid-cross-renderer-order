@@ -86,6 +86,17 @@
 </div>
 <output id="frame-status" aria-live="polite"></output>
 
+<h2>JSX types</h2>
+<p>This section has no canvas: TypeScript does the checking. In Solid 2, <code>solid-js</code> does not own JSX types. Each renderer package provides its own <code>jsx-runtime</code> types, and a file picks one with <code>jsxImportSource</code>. <a href="types/three-jsx.d.ts">These types</a> derive each element's props from its three.js class and match what the renderer does with them.</p>
+<ul>
+  <li><strong>One source for tags.</strong> The renderer and the types both read <a href="catalogue.js">catalogue.js</a>. A tag exists in the types exactly when the renderer can create it. Types over the whole <code>three</code> namespace accept <code>&lt;sphereGeometry /&gt;</code>, which this renderer cannot create.</li>
+  <li><strong>Props follow the renderer.</strong> <code>position</code> takes <code>[x, y, z]</code>, because the renderer calls <code>position.set(...value)</code>. A bare number or a <code>Vector3</code> instance is a type error, because <code>set()</code> would get the wrong arguments. <code>color</code> takes a string, a number or <code>[r, g, b]</code>. <code>args</code> are checked against the constructor, events exist only on <code>Object3D</code>, and <code>ref</code> receives a node whose <code>object</code> has the element's class.</li>
+  <li><strong>Checked both ways.</strong> <a href="types/fixtures/valid.tsx">One file</a> must have no errors. In <a href="types/fixtures/invalid.tsx">another</a>, every line marked <code>@ts-expect-error</code> must be an error. If the types accept one of those lines, the check fails.</li>
+  <li><strong>Cost.</strong> Six catalogue tags: about 7,400 type instantiations and 0.02 s of checking. All of <code>three</code>: about 14,700 and 0.13 s (TypeScript 7).</li>
+  <li><strong>DOM and three in one file.</strong> The compiler can mix renderers in one file, but TypeScript reads one <code>jsxImportSource</code> per file. <a href="types/mixed/jsx-runtime.d.ts">A merged namespace</a> works for this catalogue. Across all of <code>three</code>, four tags clash with DOM and SVG: <code>audio</code>, <code>source</code>, <code>line</code> and <code>path</code>. A merged namespace also cannot tell which renderer owns a tag, so <code>&lt;div&gt;</code> inside <code>&lt;mesh&gt;</code> type-checks.</li>
+  <li><strong>The real scenes.</strong> Checked with <code>checkJs</code>, the four scenes on this page have 6 JSX errors. <code>render()</code> from <code>@solidjs/universal</code> expects a single node, while a JSX expression is typed as the wider <code>JSX.Element</code>. And in plain JavaScript, a helper that returns <code>[x, y, 0]</code> is a <code>number[]</code>, not a tuple. Props, refs, events, <code>&lt;Show&gt;</code>, <code>&lt;For&gt;</code> and <code>&lt;Loading&gt;</code> all check.</li>
+</ul>
+
 <p><a href="three-renderer.js">View the renderer</a> · View the scenes: <a href="main-scene.jsx">renderer</a>, <a href="events-scene.jsx">events</a>, <a href="async-scene.jsx">async</a>, <a href="frame-scene.jsx">frame loop</a> · <a href="../../">Back to the main demo</a></p>
 <script src="../../dist/three.js"></script>
 </body>

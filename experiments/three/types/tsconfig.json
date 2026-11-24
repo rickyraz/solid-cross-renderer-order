@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "jsxImportSource": "three-jsx",
+    "paths": {
+      "three-jsx/jsx-runtime": ["./jsx-runtime.d.ts"],
+      "three-jsx/jsx-dev-runtime": ["./jsx-runtime.d.ts"],
+      "three-jsx-full/jsx-runtime": ["./full/jsx-runtime.d.ts"],
+      "three-jsx-full/jsx-dev-runtime": ["./full/jsx-runtime.d.ts"],
+      "three-jsx-mixed/jsx-runtime": ["./mixed/jsx-runtime.d.ts"],
+      "three-jsx-mixed/jsx-dev-runtime": ["./mixed/jsx-runtime.d.ts"]
+    },
+    "allowJs": true,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "lib": ["es2022", "dom"]
+  },
+  "files": ["fixtures/valid.tsx", "fixtures/invalid.tsx", "fixtures/mixed.tsx"]
+}

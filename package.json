@@ -9,17 +9,21 @@
     "build:baseline": "node build-baseline.mjs",
     "test:baseline": "npm run build:baseline && node --test test/baseline.test.mjs",
     "build:three": "node build-three.mjs",
-    "test:three": "npm run build:three && node --test test/three.test.mjs test/three-events.test.mjs test/three-async.test.mjs test/three-page.test.mjs test/three-frame.test.mjs"
+    "test:three": "npm run build:three && node --test test/three.test.mjs test/three-events.test.mjs test/three-async.test.mjs test/three-page.test.mjs test/three-frame.test.mjs",
+    "test:types": "tsc -p experiments/three/types/tsconfig.json"
   },
   "imports": { "#scene": "./src/scene-renderer.js" },
   "dependencies": {
     "@solidjs/universal": "2.0.3",
     "@solidjs/web": "2.0.3",
-    "solid-js": "2.0.3"
+    "solid-js": "2.0.3",
+    "three": "0.181.2"
   },
   "devDependencies": {
     "@solidjs/compiler": "2.0.2",
+    "@types/three": "0.181.0",
     "esbuild": "0.28.2",
-    "playwright": "1.65.1"
+    "playwright": "1.65.1",
+    "typescript": "7.0.2"
   }
 }

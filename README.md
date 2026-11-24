@@ -138,7 +138,41 @@ What this adds to the renderer's list:
 
 Not measured: subscriber priorities and render takeover (R3F's `useFrame(cb, priority)`), many render roots sharing one loop, thousands of objects, and real GPUs.
 
-Still not covered: JSX types for the catalogue.
+### JSX types
+
+In Solid 2, `solid-js` does not own JSX types: a renderer package provides `jsx-runtime` types and a file picks them with `jsxImportSource` (see the `@solidjs/universal` README). The types live in [`experiments/three/types`](experiments/three/types):
+
+- [`three-jsx.d.ts`](experiments/three/types/three-jsx.d.ts) maps a three.js class to its JSX props, following what the renderer does. A property whose value has `set()` (`Vector3`, `Euler`, `Color`, ...) takes `set()`'s arguments as a tuple, or the single argument when `set()` takes one. Other properties are assigned as is. `args` are the constructor's parameters. Pointer handlers exist only on `Object3D`. `ref` receives the renderer's node, whose `object` has the element's class.
+- [`jsx-runtime.d.ts`](experiments/three/types/jsx-runtime.d.ts) builds the intrinsic elements from the runtime catalogue, now in [`catalogue.js`](experiments/three/catalogue.js), which the renderer also imports. A tag type-checks exactly when the renderer can create it.
+- [`full/jsx-runtime.d.ts`](experiments/three/types/full/jsx-runtime.d.ts) maps every class `three` exports, as R3F's types do. It is used only to measure cost.
+- [`mixed/jsx-runtime.d.ts`](experiments/three/types/mixed/jsx-runtime.d.ts) merges `@solidjs/web`'s namespace with the catalogue, for files that mix DOM and three elements.
+
+`npm run test:types` checks three fixtures. [`valid.tsx`](experiments/three/types/fixtures/valid.tsx) must have no errors. In [`invalid.tsx`](experiments/three/types/fixtures/invalid.tsx) every line under `@ts-expect-error` must be an error, so if the types accept one, the check fails. As a sanity check, an error added to the valid file and a removed directive in the invalid file were both reported.
+
+| Check | Result |
+| --- | --- |
+| Tags | Only catalogue tags. `<sphereGeometry />` and `<div />` are errors. The full-namespace types accept `<sphereGeometry />`, which the renderer cannot create. |
+| `position` | `[x, y, z]` passes. `[1, 2]`, `1`, and a `Vector3` instance are errors, because the renderer would call `set()` with the wrong arguments. |
+| `color` | A string, a number or `[r, g, b]` passes. `{ r: 1 }` is an error. |
+| `args` | Checked against the constructor: wrong types and too many arguments are errors. |
+| Events | `onClick` on a mesh gets a three event (`stopPropagation`, `eventObject`). On a material it is an error. |
+| `ref` | `node.object` is typed as the element's class. Reading a material property from a mesh's ref is an error. |
+| Solid components | `Component<P>` returning `<mesh>`, `<Show>`, `<For>` and `<Loading>` with three children all check, with no casts. Solid's `Element` is renderer-neutral. |
+| Cost, `valid.tsx`, TypeScript 7.0.2 | Catalogue (6 tags): 7,397 instantiations, about 0.02 s of checking. All of `three`: 14,723 instantiations, about 0.13 s. |
+| DOM and three in one file | TypeScript reads one `jsxImportSource` per file, while the compiler can mix renderers in one file. A merged namespace works for this catalogue. Across all of `three`, four tags clash ([`collisions.mjs`](experiments/three/types/collisions.mjs)): `audio` and `source` with HTML, `line` and `path` with SVG. A merged namespace cannot say which renderer owns a tag, so `<div>` inside `<mesh>` type-checks. |
+
+Checking the four real scenes with `checkJs` (`tsc -p experiments/three/types/tsconfig.scenes.json`) gives 54 errors. 48 of them are ordinary strict-JS noise (`querySelector` may return `null`, globals on `window`). The 6 JSX errors are of two kinds:
+
+- **`render()` and `JSX.Element` disagree** (4, one per scene). `@solidjs/universal` types `render(code: () => NodeType, root)`, but a JSX expression is typed as `JSX.Element`, a union that includes arrays and `undefined`. A renderer package has to re-type `render`.
+- **Tuples in plain JavaScript** (2). A helper that returns `[x, y, 0]` is inferred as `number[]`, which does not fit `[x, y, z]`. TypeScript code would use `as const` or a return type.
+
+What this adds to the renderer's list:
+
+15. **Types must come from the runtime catalogue.** Otherwise they accept tags that crash at runtime, or reject tags that work.
+16. **Prop types must follow the renderer's prop logic.** A type that allows a `Vector3` instance for `position` (as a generic "the property's type" would) passes a value the renderer mishandles.
+17. **`render` needs its own types**, so that a JSX expression fits.
+
+Not covered: generating types for `extend()`-style catalogues that users grow at runtime, editor performance on large projects, and a published package with `jsx-runtime` exports (this repo maps the import with tsconfig `paths`).
 
 ## Build and test
 

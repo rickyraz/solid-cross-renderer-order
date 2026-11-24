@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "jsxImportSource": "three-jsx-full" },
+  "files": ["fixtures/valid.tsx"]
+}

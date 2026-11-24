@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "checkJs": true, "noImplicitAny": false },
+  "files": ["../main-scene.jsx", "../events-scene.jsx", "../async-scene.jsx", "../frame-scene.jsx"]
+}
