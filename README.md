@@ -78,7 +78,36 @@ What this adds to the renderer's list:
 
 Not measured: raycast cost in large scenes (every pointer move tests the whole scene), touch and multi-pointer input, and instanced meshes.
 
-Still not covered: JSX types for the catalogue, loaders and async resources, shared resources that the renderer must not dispose, and a per-frame loop.
+### Async loaders and shared resources
+
+A second canvas with its own `WebGLRenderer`, so its GPU counters stand alone. Three boxes load a texture from a fake loader that the test resolves by hand. Left and middle use the same key and share one texture. Three pieces:
+
+- [`resource-cache.js`](experiments/three/resource-cache.js): a reference-counted cache with no imports. The first `acquire(key)` starts the load and later ones share it. When the count reaches zero, it disposes after one microtask, so a remount in the same tick keeps the resource. A resource whose users all left before it loaded is disposed as soon as it arrives.
+- [`use-resource.js`](experiments/three/use-resource.js): the Solid binding, an async `createMemo` read under `<Loading>`, with two release strategies.
+- [`async-scene.jsx`](experiments/three/async-scene.jsx): the boxes, with a wireframe `<Loading>` fallback.
+
+Results (`test/three-async.test.mjs`, run once per strategy):
+
+| Check | Result |
+| --- | --- |
+| `<Loading>` through the three renderer | Wireframe placeholders until each texture lands, then the textured box. Placeholder geometry is disposed. |
+| Shared texture | One load for two boxes. Hiding one keeps the texture. Hiding both disposes it. |
+| Changing the texture key | The old texture stays on screen and referenced until the new one lands, then it is released and disposed. |
+| Hiding a box while its texture loads | The texture is disposed on arrival and never reaches the GPU. |
+| Key changed again before the first load lands | The superseded load is released at once and disposed on arrival. |
+| Everything hidden | 0 geometries and 0 textures on the GPU. Every texture ever loaded was disposed. |
+| Remount in the same tick | The cached textures are reused without a reload. |
+
+**A hypothesis that failed.** I expected that releasing in the async memo's `onCleanup` (the *naive* strategy) would dispose the texture still on screen, because Solid 2 keeps old content visible while new data loads. It does not. In Solid 2.0.3, the `onCleanup` of the run on screen waits until its replacement lands, while a run that never reached the screen is cleaned up at once. Both strategies pass the same test. I found this only by testing, not in the docs I searched, so the *committed* strategy is the one to rely on: it releases in the cleanup of a `createEffect`, which by its documented contract runs before the next applied value or on disposal. The *naive* test stays as a tripwire: if a Solid update changes the timing, it fails.
+
+What this adds to the renderer's list:
+
+9. **Ownership is outside the renderer.** The renderer disposes only what it constructed. A texture passed as a prop (`map={texture()}`) is never disposed by the renderer, so shared resources need their own owner: here, the cache.
+10. **The cache must know about late arrivals.** Without late disposal, every load that loses a race leaks a texture.
+
+Not measured: load errors and retries, `<Errored>` boundaries, cancelling a load in flight (the fake loader cannot abort), and real network loaders.
+
+Still not covered: JSX types for the catalogue and a per-frame loop.
 
 ## Build and test
 

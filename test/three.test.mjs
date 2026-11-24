@@ -12,7 +12,7 @@ test("three renderer: identity, attach, args, and disposal", async () => {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
-    await page.goto(new URL("../experiments/three/index.html", import.meta.url).href);
+    await page.goto(new URL("../experiments/three/index.html?manual", import.meta.url).href);
     await page.locator('button[data-action="swap"]:enabled').waitFor();
     const run = (name, ...args) => page.evaluate(([n, a]) => window.__three[n](...a), [name, args]);
 
