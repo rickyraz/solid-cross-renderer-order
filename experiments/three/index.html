@@ -67,7 +67,26 @@
 </div>
 <output id="async-status" aria-live="polite"></output>
 
-<p><a href="three-renderer.js">View the renderer</a> · View the scenes: <a href="main-scene.jsx">renderer</a>, <a href="events-scene.jsx">events</a>, <a href="async-scene.jsx">async</a> · <a href="../../">Back to the main demo</a></p>
+<h2>Per-frame loop</h2>
+<p>Animation needs code that runs every frame, outside Solid's reactivity. <a href="frame-loop.js">The frame loop</a> is plain JavaScript: each frame it runs its subscribers, calls a <code>beforeRender</code> hook, and draws. <a href="use-frame.js">The Solid binding</a> adds two things: <code>useFrame()</code>, which unsubscribes when its component unmounts, and <code>flush()</code> as the <code>beforeRender</code> hook.</p>
+<ul>
+  <li><strong>Two ways to animate.</strong> 100 boxes spin. <em>Imperative</em>: each box's frame callback sets <code>rotation</code> on the three object. <em>Signal</em>: one callback writes a <code>time</code> signal, and each box reads it in its <code>rotation</code> prop, so Solid updates 100 props every frame. Switch and compare the update time.</li>
+  <li><strong>Same-frame updates.</strong> Solid 2 applies signal writes in a microtask, after the frame callback returns, which is after the frame is drawn. Turn on the probe: it writes the frame number to a signal and reads it back from three when drawing. With <code>flush()</code> before render, the lag is 0 frames. Turn flush off and it becomes 1.</li>
+  <li><strong>Render on demand.</strong> In <em>demand</em> mode the loop draws only when asked. The renderer reports every change Solid makes to the scene, so changing the color draws one frame and then the loop sleeps. Spinning boxes keep it awake. So does the probe: it writes a signal every frame, which changes the scene, which asks for another frame.</li>
+  <li><strong>Unmount.</strong> Stop the spinners and their 100 callbacks unsubscribe.</li>
+</ul>
+<canvas id="frame-canvas" width="800" height="360" role="img" aria-label="A grid of spinning boxes"></canvas>
+<div class="controls">
+  <button type="button" data-frame="strategy" disabled>Imperative / signal</button>
+  <button type="button" data-frame="spinning" disabled>Stop / start spinners</button>
+  <button type="button" data-frame="probing" disabled>Probe on / off</button>
+  <button type="button" data-frame="flush" disabled>Flush before render on / off</button>
+  <button type="button" data-frame="mode" disabled>Always / demand</button>
+  <button type="button" data-frame="color" disabled>Change color</button>
+</div>
+<output id="frame-status" aria-live="polite"></output>
+
+<p><a href="three-renderer.js">View the renderer</a> · View the scenes: <a href="main-scene.jsx">renderer</a>, <a href="events-scene.jsx">events</a>, <a href="async-scene.jsx">async</a>, <a href="frame-scene.jsx">frame loop</a> · <a href="../../">Back to the main demo</a></p>
 <script src="../../dist/three.js"></script>
 </body>
 </html>

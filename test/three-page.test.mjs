@@ -14,11 +14,12 @@ test("page: automatic loads reach the screen", async () => {
     page.on("pageerror", error => errors.push(error.message));
     await page.goto(url);
     const status = page.locator("#async-status");
-    await status.filter({ hasText: "left loading" }).waitFor();
-    // Text only changes if the scene redrew after the timer resolved the loads.
-    await status.filter({ hasText: "left red · middle red · right gray" }).waitFor({ timeout: 5000 });
+    // The status only reaches this text if the scene redrew after the timer
+    // resolved the loads. (No wait for "loading" first: on a busy machine the
+    // loads can finish before the page is checked.)
+    await status.filter({ hasText: "left red · middle red · right gray" }).waitFor({ timeout: 10000 });
     assert.match(await status.textContent(), /GPU textures 2/);
-    for (const id of ["main-status", "event-status"]) {
+    for (const id of ["main-status", "event-status", "frame-status"]) {
       assert.notEqual(await page.locator("#" + id).textContent(), "", id);
     }
     assert.deepEqual(errors, []);
@@ -33,7 +34,7 @@ test("page: each example reports when it cannot start", async () => {
   try {
     const page = await browser.newPage();
     await page.goto(url);
-    for (const id of ["main-status", "event-status", "async-status"]) {
+    for (const id of ["main-status", "event-status", "async-status", "frame-status"]) {
       const output = page.locator("#" + id);
       await output.filter({ hasText: "could not start" }).waitFor({ timeout: 5000 });
       assert.equal(await output.getAttribute("data-error"), "true", id);
