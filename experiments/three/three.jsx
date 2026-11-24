@@ -2,6 +2,7 @@ import { createSignal, flush, For, onCleanup, Show } from "solid-js";
 import { PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import { createEvents } from "./three-events.js";
 import { render, rootOf, stats } from "./three-renderer.js";
+import "./async-scene.jsx";
 
 // The same keyed swap as the main demo, but every node is a real three.js
 // object rendered with WebGL. Each slot is a mesh with an attached geometry,
