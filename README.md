@@ -24,6 +24,18 @@ Both examples read the same Solid signal, initially `["A", "B"]`. Each scene con
 
 The experiment shows that a bridge can keep a shared overlay in sync using existing APIs. Should Solid guarantee this ordering, or should each bridge handle it?
 
+## Is this by design? A one-renderer baseline
+
+The same question without the scene renderer: [experiments/baseline](experiments/baseline/baseline.jsx) uses only the DOM renderer and three ways to put a row's label into a shared container. After a swap of the keyed rows:
+
+| Placement | Host rows | Labels in shared container |
+| --- | --- | --- |
+| Imperative `append` | B, A | A, B |
+| Solid's `Portal` | B, A | A, B |
+| Container rendered by its own `<For>` | B, A | B, A |
+
+So the mismatch is not specific to a second renderer. Content placed in a container outside its row, even with Solid's own `Portal`, stays in mount order, and only a list that Solid itself renders follows its keys. I found no statement of an ordering guarantee for `Portal` in the 2.0 docs I searched. Run it with `npm run test:baseline` (Chromium, same setup as above).
+
 ## Build and test
 
 To edit the demo, use Node.js 22.12 or later. Run the following commands from this folder, then reload **index.html**.

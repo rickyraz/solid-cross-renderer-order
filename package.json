@@ -5,7 +5,9 @@
   "engines": { "node": ">=22.12.0" },
   "scripts": {
     "build": "node build.mjs",
-    "test": "npm run build && node --test test/label-order.test.mjs"
+    "test": "npm run build && node --test test/label-order.test.mjs",
+    "build:baseline": "node build-baseline.mjs",
+    "test:baseline": "npm run build:baseline && node --test test/baseline.test.mjs"
   },
   "imports": { "#scene": "./src/scene-renderer.js" },
   "dependencies": {

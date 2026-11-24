@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baseline: shared container order with one renderer</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; }
+  section { border: 1px solid #ccc; border-radius: 8px; padding: .5rem 1rem; margin: 1rem 0; }
+  .overlay { display: flex; gap: .5rem; padding: .5rem; background: #f4f4f4; min-height: 2rem; }
+  .overlay label { background: #fff; border: 1px solid #999; padding: 0 .5rem; }
+  output[data-match="true"] { color: #060; }
+  output[data-match="false"] { color: #a00; }
+  .note { margin: 0; color: #555; }
+</style>
+</head>
+<body>
+<h1>One renderer, shared container</h1>
+<p>Same DOM renderer for everything. Does a label's position in a shared container follow its keyed row?</p>
+<button id="swap" disabled>Swap A and B</button>
+<div id="app"></div>
+<script src="../../dist/baseline.js"></script>
+</body>
+</html>
