@@ -1,18 +1,10 @@
 import { createRenderer } from "@solidjs/universal";
-import { BoxGeometry, DataTexture, Group, Mesh, MeshBasicMaterial, Object3D, Scene } from "three";
+import { Object3D } from "three";
+import { catalogue } from "./catalogue.js";
 
 // A universal renderer for real three.js objects, kept small on purpose.
 // It tests what @solidjs/universal leaves to the renderer: a catalogue,
 // constructor args, attach, disposal, and moves inside Object3D.children.
-
-const catalogue = {
-  scene: Scene,
-  group: Group,
-  mesh: Mesh,
-  boxGeometry: BoxGeometry,
-  meshBasicMaterial: MeshBasicMaterial,
-  dataTexture: DataTexture
-};
 
 // Counters that the page and the test read.
 export const stats = { created: 0, recreated: 0, disposed: 0, cancelledDisposals: 0, textNodes: 0 };
