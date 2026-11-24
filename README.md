@@ -38,7 +38,7 @@ So the mismatch is not specific to a second renderer. Content placed in a contai
 
 ## Is `@solidjs/universal` enough for real three.js?
 
-The scene renderer above only stores plain objects. [experiments/three](experiments/three/three.jsx) replaces it with [a renderer for real three.js objects](experiments/three/three-renderer.js) (three 0.181.2, drawn with WebGL). Each keyed slot is a `Mesh` with an attached `BoxGeometry`, `MeshBasicMaterial` and `DataTexture`. Run it with `npm run test:three`.
+The scene renderer above only stores plain objects. [experiments/three](experiments/three/main-scene.jsx) replaces it with [a renderer for real three.js objects](experiments/three/three-renderer.js) (three 0.181.2, drawn with WebGL). Each keyed slot is a `Mesh` with an attached `BoxGeometry`, `MeshBasicMaterial` and `DataTexture`. Run it with `npm run test:three`.
 
 | Check | Result |
 | --- | --- |
@@ -58,7 +58,7 @@ It works, but the renderer has to fill these gaps itself:
 
 ### Pointer events and raycasting
 
-`@solidjs/universal` has no event API. `onClick={fn}` reaches `createElement` as an ordinary prop (a function is a literal, so it arrives at creation time). The renderer stores handlers on the node, and [an event system of about 160 lines](experiments/three/three-events.js) does the rest with real mouse input in the test (`test/three-events.test.mjs`):
+`@solidjs/universal` has no event API. `onClick={fn}` reaches `createElement` as an ordinary prop (a function is a literal, so it arrives at creation time). The renderer stores handlers on the node, and [an event system of about 160 lines](experiments/three/three-events.js) does the rest. The example has its own canvas ([`events-scene.jsx`](experiments/three/events-scene.jsx)), and the test drives it with real mouse input (`test/three-events.test.mjs`):
 
 | Behavior | Rule | Tested by |
 | --- | --- | --- |

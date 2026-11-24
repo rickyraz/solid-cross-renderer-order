@@ -9,7 +9,7 @@
     "build:baseline": "node build-baseline.mjs",
     "test:baseline": "npm run build:baseline && node --test test/baseline.test.mjs",
     "build:three": "node build-three.mjs",
-    "test:three": "npm run build:three && node --test test/three.test.mjs test/three-events.test.mjs test/three-async.test.mjs"
+    "test:three": "npm run build:three && node --test test/three.test.mjs test/three-events.test.mjs test/three-async.test.mjs test/three-page.test.mjs"
   },
   "imports": { "#scene": "./src/scene-renderer.js" },
   "dependencies": {

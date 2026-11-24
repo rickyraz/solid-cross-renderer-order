@@ -12,12 +12,16 @@
   .controls { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
   output { display: block; font: 14px/1.5 ui-monospace, monospace; background: #f4f4f4; padding: .5rem; border-radius: 6px; }
   .note { color: #555; }
+  output[data-error="true"], .warning { background: #fde8e8; color: #8a1c1c; }
+  .warning { padding: .5rem 1rem; border-radius: 6px; }
+  .try { color: #333; font-size: .95rem; }
 </style>
 </head>
 <body>
 <h1>Real three.js through <code>@solidjs/universal</code></h1>
+<noscript><p class="warning">These examples need JavaScript and WebGL. If you opened this file in a preview that does not run scripts, open the <a href="https://rickyraz.github.io/solid-cross-renderer-order/experiments/three/">live page</a> instead.</p></noscript>
 <p class="note">Each slot is a <code>Mesh</code> with an attached <code>BoxGeometry</code>, <code>MeshBasicMaterial</code>, and <code>DataTexture</code>. Swap them, change the box width (a constructor argument), or unmount them, and watch the WebGL memory counters.</p>
-<canvas width="800" height="360" role="img" aria-label="Two boxes on a fixed floor"></canvas>
+<canvas id="main-canvas" width="800" height="360" role="img" aria-label="Two boxes on a fixed floor"></canvas>
 <div class="controls">
   <button type="button" data-action="swap" disabled>Swap A and B</button>
   <button type="button" data-action="widen" disabled>Change box width (args)</button>
@@ -25,7 +29,7 @@
   <button type="button" data-action="toggle" disabled>Unmount / mount slots</button>
   <button type="button" data-action="cycle" disabled>Run 100 cycles</button>
 </div>
-<output aria-live="polite"></output>
+<output id="main-status" aria-live="polite"></output>
 
 <h2>Pointer events and raycasting</h2>
 <p><code>@solidjs/universal</code> knows nothing about events. A prop like <code>onClick</code> reaches the renderer as an ordinary prop, so the renderer stores it, and <a href="three-events.js">a small event system</a> does what the browser does for DOM elements:</p>
@@ -37,10 +41,15 @@
   <li><strong>Click means down and up on the same object.</strong> A drag from A to B is a click on neither, but their shared <code>slots</code> group gets one, as a DOM click goes to the common ancestor.</li>
   <li><strong>Disposal.</strong> When a hovered or captured box is unmounted, it is dropped without a <code>pointerout</code>: its owner is gone, so its handlers must not run. The component clears its own hover state with <code>onCleanup</code>.</li>
 </ul>
+<canvas id="events-canvas" width="800" height="300" role="img" aria-label="Two boxes that react to the pointer"></canvas>
+<p class="try">Try it: hover a box, click A then B and compare the group count, press on A and drag sideways past B, or unmount the boxes while one is hovered.</p>
+<div class="controls">
+  <button type="button" data-events="toggle" disabled>Unmount / mount boxes</button>
+</div>
 <output id="event-status" aria-live="polite"></output>
 
 <h2>Async loaders and shared resources</h2>
-<p>A second canvas, with its own <code>WebGLRenderer</code>, so its GPU counters stand alone. Each box waits for a texture from a slow loader. The left and middle boxes ask for the same texture, so they share one. The right box has its own.</p>
+<p>This example has its own canvas and <code>WebGLRenderer</code>, so its GPU counters stand alone. Each box waits for a texture from a slow loader. The left and middle boxes ask for the same texture, so they share one. The right box has its own.</p>
 <ul>
   <li><strong>Loading.</strong> The texture is read through an async <code>createMemo</code>. Until it arrives, Solid's <code>&lt;Loading&gt;</code> shows a wireframe box. The boundary works through the three renderer like any other component.</li>
   <li><strong>Shared resources.</strong> <a href="resource-cache.js">A reference-counted cache</a> in plain JavaScript, with no Solid and no three, loads each key once. Hide the left box and the texture stays for the middle one. Hide both and the texture is disposed.</li>
@@ -58,7 +67,7 @@
 </div>
 <output id="async-status" aria-live="polite"></output>
 
-<p><a href="three-renderer.js">View the renderer</a> · <a href="three.jsx">View the scene</a> · <a href="../../">Back to the main demo</a></p>
+<p><a href="three-renderer.js">View the renderer</a> · View the scenes: <a href="main-scene.jsx">renderer</a>, <a href="events-scene.jsx">events</a>, <a href="async-scene.jsx">async</a> · <a href="../../">Back to the main demo</a></p>
 <script src="../../dist/three.js"></script>
 </body>
 </html>
