@@ -17,6 +17,15 @@ const catalogue = {
 // Counters that the page and the test read.
 export const stats = { created: 0, recreated: 0, disposed: 0, cancelledDisposals: 0, textNodes: 0 };
 
+// The event system (three-events.js) needs to go from a hit three object back
+// to the Solid node that holds its handlers, and to hear when a node is gone.
+export const instanceOf = new WeakMap();
+const disposeListeners = new Set();
+export function onInstanceDispose(listener) {
+  disposeListeners.add(listener);
+  return () => disposeListeners.delete(listener);
+}
+
 // Solid holds this wrapper, not the three object. The wrapper is the shadow
 // tree: material, geometry and texture never appear in Object3D.children,
 // but Solid still needs a parent and a next sibling for every node.
@@ -29,6 +38,8 @@ export class Instance {
     this.props = {};
     this.attachment = undefined; // { target, key, previous } while attached by property
     this.pendingDispose = false;
+    this.handlers = undefined; // { onClick, onPointerOver, ... } for objects with event props
+    if (object) instanceOf.set(object, this);
   }
 }
 
@@ -96,6 +107,8 @@ function unlink(child) {
 // constructed are disposed; Solid never told us about anything else.
 function disposeTree(instance) {
   for (const child of instance.children) disposeTree(child);
+  for (const listener of disposeListeners) listener(instance);
+  instance.handlers = undefined;
   unlink(instance);
   if (typeof instance.object?.dispose === "function" && !instance.object.isScene) {
     instance.object.dispose();
@@ -120,6 +133,13 @@ function scheduleDispose(instance) {
 function applyProp(instance, name, value) {
   instance.props[name] = value;
   if (name === "attach") return;
+  // onClick, onPointerOver, ...: kept on the node, read by three-events.js.
+  if (/^on[A-Z]/.test(name)) {
+    instance.handlers ??= {};
+    if (value) instance.handlers[name] = value;
+    else delete instance.handlers[name];
+    return;
+  }
   const target = instance.object;
   const current = target[name];
   if (current && typeof current.set === "function" && !current.isTexture) {
@@ -139,6 +159,7 @@ function recreate(instance, args) {
   const wasLinked = parent && (instance.attachment || old.parent === parent.object);
   if (wasLinked) unlink(instance);
   instance.object = construct(instance.tag, args);
+  instanceOf.set(instance.object, instance);
   stats.recreated++;
   for (const [name, value] of Object.entries(instance.props)) {
     if (name !== "args") applyProp(instance, name, value);
