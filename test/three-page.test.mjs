@@ -43,3 +43,26 @@ test("page: each example reports when it cannot start", async () => {
     await browser.close();
   }
 });
+
+// ?embed=<name> shows and starts one example, for iframes on other pages.
+test("page: embed mode starts only the named example", async () => {
+  const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+  try {
+    const page = await browser.newPage();
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.goto(url + "?embed=events");
+    await page.locator("#event-status").filter({ hasText: /\S/ }).waitFor({ timeout: 5000 });
+    assert.equal(await page.locator("#events-canvas").isVisible(), true);
+    for (const id of ["main-canvas", "async-canvas", "frame-canvas"]) {
+      assert.equal(await page.locator("#" + id).isVisible(), false, id);
+    }
+    assert.equal(await page.locator("h1").isVisible(), false);
+    for (const id of ["main-status", "async-status", "frame-status"]) {
+      assert.equal(await page.locator("#" + id).textContent(), "", id);
+    }
+    assert.deepEqual(errors, []);
+  } finally {
+    await browser.close();
+  }
+});

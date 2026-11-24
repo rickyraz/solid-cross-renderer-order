@@ -68,3 +68,9 @@ code { color: var(--ink); font: .92em var(--mono); }
   section + section { border-left: 0; border-top: 1px solid var(--rule); }
   aside { gap: 8px; }
 }
+
+/* ?embed shows the swap button and both examples, for iframes elsewhere. */
+html[data-embed] body { background: transparent; }
+html[data-embed] main { width: auto; margin: 0; padding: 2px; }
+html[data-embed] .bar, html[data-embed] aside, html[data-embed] .intro > div { display: none; }
+html[data-embed] .intro { padding: 0 0 12px; }
