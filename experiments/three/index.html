@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real three.js objects through @solidjs/universal</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; max-width: 46rem; margin: 2rem auto; padding: 0 1rem; }
+  canvas { width: 100%; height: auto; border: 1px solid #ccc; border-radius: 8px; display: block; }
+  .controls { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+  output { display: block; font: 14px/1.5 ui-monospace, monospace; background: #f4f4f4; padding: .5rem; border-radius: 6px; }
+  .note { color: #555; }
+</style>
+</head>
+<body>
+<h1>Real three.js through <code>@solidjs/universal</code></h1>
+<p class="note">Each slot is a <code>Mesh</code> with an attached <code>BoxGeometry</code>, <code>MeshBasicMaterial</code>, and <code>DataTexture</code>. Swap them, change the box width (a constructor argument), or unmount them, and watch the WebGL memory counters.</p>
+<canvas width="800" height="360" role="img" aria-label="Two boxes on a fixed floor"></canvas>
+<div class="controls">
+  <button type="button" data-action="swap" disabled>Swap A and B</button>
+  <button type="button" data-action="widen" disabled>Change box width (args)</button>
+  <button type="button" data-action="recolor" disabled>Change color (prop)</button>
+  <button type="button" data-action="toggle" disabled>Unmount / mount slots</button>
+  <button type="button" data-action="cycle" disabled>Run 100 cycles</button>
+</div>
+<output aria-live="polite"></output>
+<p><a href="three-renderer.js">View the renderer</a> · <a href="three.jsx">View the scene</a> · <a href="../../">Back to the main demo</a></p>
+<script src="../../dist/three.js"></script>
+</body>
+</html>

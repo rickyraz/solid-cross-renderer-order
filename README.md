@@ -36,6 +36,28 @@ The same question without the scene renderer: [experiments/baseline](experiments
 
 So the mismatch is not specific to a second renderer. Content placed in a container outside its row, even with Solid's own `Portal`, stays in mount order, and only a list that Solid itself renders follows its keys. I found no statement of an ordering guarantee for `Portal` in the 2.0 docs I searched. Run it with `npm run test:baseline` (Chromium, same setup as above).
 
+## Is `@solidjs/universal` enough for real three.js?
+
+The scene renderer above only stores plain objects. [experiments/three](experiments/three/three.jsx) replaces it with [a renderer for real three.js objects](experiments/three/three-renderer.js) (three 0.181.2, drawn with WebGL). Each keyed slot is a `Mesh` with an attached `BoxGeometry`, `MeshBasicMaterial` and `DataTexture`. Run it with `npm run test:three`.
+
+| Check | Result |
+| --- | --- |
+| Keyed swap | The same `Mesh` objects move. No object is rebuilt. |
+| Prop change (`color`) | The existing `Color` is mutated in place. |
+| `args` change (box width) | Only the two geometries are rebuilt. The meshes keep their identity, and WebGL memory stays at 3 geometries and 2 textures. |
+| Unmount | Memory drops to the floor's 1 geometry and 0 textures. |
+| 100 unmount, remount, swap and resize cycles | Memory returns to 3 geometries and 2 textures. 1,532 objects created, 1,216 disposed. The other 316 are 308 `Group` and `Mesh` objects (three's `Object3D` has no `dispose`) and the 8 live resources. |
+
+It works, but the renderer has to fill these gaps itself:
+
+1. **A shadow tree.** Material, geometry and texture never appear in `Object3D.children`, but Solid needs `getParentNode` and `getNextSibling` for every node. Solid holds a wrapper, not the three object.
+2. **Ordered insertion.** Solid moves a keyed node with `insertNode(parent, node, anchor)` alone, without `removeNode`. `Object3D.add()` always appends, so the renderer splices `children` and fires `added` and `childadded` itself.
+3. **Constructor arguments arrive late.** The compiler passes only literal props to `createElement`. A dynamic `args={[width(), 1, 1]}` arrives through `setProperty` after the object was built with no arguments, so every object with dynamic `args` is built twice (4 of the first 17 objects were thrown away). Because Solid holds the wrapper, the wrapper can swap in a new object. The cost is that refs receive the wrapper, not the three object.
+4. **Removal is not disposal.** `removeNode` is called only for the top node of a removed subtree, and a held node could be inserted again. The renderer waits one microtask before it disposes the subtree, and cancels the disposal if the node comes back.
+5. **Text nodes.** three has none, but Solid creates them. Each `<Show>` mount adds an empty sentinel text node (102 after 100 cycles).
+
+Not covered: pointer events and raycasting, JSX types for the catalogue, loaders and async resources, shared resources that the renderer must not dispose, and a per-frame loop.
+
 ## Build and test
 
 To edit the demo, use Node.js 22.12 or later. Run the following commands from this folder, then reload **index.html**.
