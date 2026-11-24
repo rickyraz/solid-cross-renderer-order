@@ -28,7 +28,7 @@
 </script>
 </head>
 <body>
-<h1>Real three.js through <code>@solidjs/universal</code></h1>
+<h1 id="renderer">Real three.js through <code>@solidjs/universal</code></h1>
 <noscript><p class="warning">These examples need JavaScript and WebGL. If you opened this file in a preview that does not run scripts, open the <a href="https://rickyraz.github.io/solid-cross-renderer-order/experiments/three/">live page</a> instead.</p></noscript>
 <p class="note">Each slot is a <code>Mesh</code> with an attached <code>BoxGeometry</code>, <code>MeshBasicMaterial</code>, and <code>DataTexture</code>. Swap them, change the box width (a constructor argument), or unmount them, and watch the WebGL memory counters.</p>
 <section class="demo" data-demo="main">
@@ -43,7 +43,7 @@
 <output id="main-status" aria-live="polite"></output>
 </section>
 
-<h2>Pointer events and raycasting</h2>
+<h2 id="pointer-events-and-raycasting">Pointer events and raycasting</h2>
 <p><code>@solidjs/universal</code> knows nothing about events. A prop like <code>onClick</code> reaches the renderer as an ordinary prop, so the renderer stores it, and <a href="three-events.js">a small event system</a> does what the browser does for DOM elements:</p>
 <ul>
   <li><strong>Hit testing.</strong> Each pointer event casts one ray from the camera through the pointer, against the whole scene, nearest hit first.</li>
@@ -62,7 +62,7 @@
 <output id="event-status" aria-live="polite"></output>
 </section>
 
-<h2>Async loaders and shared resources</h2>
+<h2 id="async-loaders-and-shared-resources">Async loaders and shared resources</h2>
 <p>This example has its own canvas and <code>WebGLRenderer</code>, so its GPU counters stand alone. Each box waits for a texture from a slow loader. The left and middle boxes ask for the same texture, so they share one. The right box has its own.</p>
 <ul>
   <li><strong>Loading.</strong> The texture is read through an async <code>createMemo</code>. Until it arrives, Solid's <code>&lt;Loading&gt;</code> shows a wireframe box. The boundary works through the three renderer like any other component.</li>
@@ -83,7 +83,7 @@
 <output id="async-status" aria-live="polite"></output>
 </section>
 
-<h2>Per-frame loop</h2>
+<h2 id="per-frame-loop">Per-frame loop</h2>
 <p>Animation needs code that runs every frame, outside Solid's reactivity. <a href="frame-loop.js">The frame loop</a> is plain JavaScript: each frame it runs its subscribers, calls a <code>beforeRender</code> hook, and draws. <a href="use-frame.js">The Solid binding</a> adds two things: <code>useFrame()</code>, which unsubscribes when its component unmounts, and <code>flush()</code> as the <code>beforeRender</code> hook.</p>
 <ul>
   <li><strong>Two ways to animate.</strong> 100 boxes spin. <em>Imperative</em>: each box's frame callback sets <code>rotation</code> on the three object. <em>Signal</em>: one callback writes a <code>time</code> signal, and each box reads it in its <code>rotation</code> prop, so Solid updates 100 props every frame. Switch and compare the update time.</li>
@@ -104,7 +104,7 @@
 <output id="frame-status" aria-live="polite"></output>
 </section>
 
-<h2>JSX types</h2>
+<h2 id="jsx-types">JSX types</h2>
 <p>This section has no canvas: TypeScript does the checking. In Solid 2, <code>solid-js</code> does not own JSX types. Each renderer package provides its own <code>jsx-runtime</code> types, and a file picks one with <code>jsxImportSource</code>. <a href="types/three-jsx.d.ts">These types</a> derive each element's props from its three.js class and match what the renderer does with them.</p>
 <ul>
   <li><strong>One source for tags.</strong> The renderer and the types both read <a href="catalogue.js">catalogue.js</a>. A tag exists in the types exactly when the renderer can create it. Types over the whole <code>three</code> namespace accept <code>&lt;sphereGeometry /&gt;</code>, which this renderer cannot create.</li>
