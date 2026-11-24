@@ -56,7 +56,29 @@ It works, but the renderer has to fill these gaps itself:
 4. **Removal is not disposal.** `removeNode` is called only for the top node of a removed subtree, and a held node could be inserted again. The renderer waits one microtask before it disposes the subtree, and cancels the disposal if the node comes back.
 5. **Text nodes.** three has none, but Solid creates them. Each `<Show>` mount adds an empty sentinel text node (102 after 100 cycles).
 
-Not covered: pointer events and raycasting, JSX types for the catalogue, loaders and async resources, shared resources that the renderer must not dispose, and a per-frame loop.
+### Pointer events and raycasting
+
+`@solidjs/universal` has no event API. `onClick={fn}` reaches `createElement` as an ordinary prop (a function is a literal, so it arrives at creation time). The renderer stores handlers on the node, and [an event system of about 160 lines](experiments/three/three-events.js) does the rest with real mouse input in the test (`test/three-events.test.mjs`):
+
+| Behavior | Rule | Tested by |
+| --- | --- | --- |
+| Hit testing | One raycast per pointer event against the whole scene, nearest hit first | Hover and clicks land on A, B, the floor, or nothing |
+| Bubbling | From the hit mesh up through its parents, each node once | A's click also reaches the `slots` group |
+| `stopPropagation()` | Stops parents and every farther hit | B's click does not reach the group |
+| Hover | Nearest hit and its parents only, like `:hover` | Over and out counts, and the hover color prop |
+| Pointer capture | Moves and the next up go to the capturing node, even off the mesh | Dragging A across B: B gets no `pointerover`, A gets every move |
+| Click | Only nodes the pointer went down on | A drag is not a click. A drag from A to B clicks only their shared group, as a DOM click goes to the common ancestor |
+| Disposal | A hovered or captured node is dropped with no `pointerout` | Unmounting during hover or capture fires nothing and leaves no capture |
+
+What this adds to the renderer's list:
+
+6. **A map from three objects back to nodes.** A raycast returns three objects, but handlers live on the wrapper. The renderer keeps a `WeakMap` and updates it when `args` rebuilds an object.
+7. **A dispose hook for the event system.** Hover, capture and pressed state hold nodes. Without a hook from `disposeTree`, they keep disposed nodes and call their handlers.
+8. **Stale app state after unmount.** Because a disposed node gets no `pointerout`, a hover signal written by `onPointerOver` stays set. The component has to clear it in `onCleanup`. Firing `pointerout` instead would run a handler whose owner is already disposed.
+
+Not measured: raycast cost in large scenes (every pointer move tests the whole scene), touch and multi-pointer input, and instanced meshes.
+
+Still not covered: JSX types for the catalogue, loaders and async resources, shared resources that the renderer must not dispose, and a per-frame loop.
 
 ## Build and test
 

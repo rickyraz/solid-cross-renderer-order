@@ -6,7 +6,9 @@
 <title>Real three.js objects through @solidjs/universal</title>
 <style>
   body { font: 16px/1.5 system-ui, sans-serif; max-width: 46rem; margin: 2rem auto; padding: 0 1rem; }
-  canvas { width: 100%; height: auto; border: 1px solid #ccc; border-radius: 8px; display: block; }
+  canvas { width: 100%; height: auto; border: 1px solid #ccc; border-radius: 8px; display: block; touch-action: none; }
+  h2 { margin-top: 2rem; }
+  li { margin: .25rem 0; }
   .controls { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
   output { display: block; font: 14px/1.5 ui-monospace, monospace; background: #f4f4f4; padding: .5rem; border-radius: 6px; }
   .note { color: #555; }
@@ -24,6 +26,19 @@
   <button type="button" data-action="cycle" disabled>Run 100 cycles</button>
 </div>
 <output aria-live="polite"></output>
+
+<h2>Pointer events and raycasting</h2>
+<p><code>@solidjs/universal</code> knows nothing about events. A prop like <code>onClick</code> reaches the renderer as an ordinary prop, so the renderer stores it, and <a href="three-events.js">a small event system</a> does what the browser does for DOM elements:</p>
+<ul>
+  <li><strong>Hit testing.</strong> Each pointer event casts one ray from the camera through the pointer, against the whole scene, nearest hit first.</li>
+  <li><strong>Bubbling.</strong> The event goes from the hit mesh up through its parents. Clicking A also counts a click on the <code>slots</code> group. B calls <code>stopPropagation()</code>, so its clicks stay on B.</li>
+  <li><strong>Hover.</strong> Only the nearest hit and its parents are hovered, like <code>:hover</code>. A hovered box turns yellow, because the handler writes a signal that drives the material's <code>color</code> prop.</li>
+  <li><strong>Pointer capture.</strong> Press on a box and drag sideways to spin it. The box calls <code>setPointerCapture()</code>, so it keeps getting moves even when the pointer leaves it. The spin mutates <code>rotation</code> directly, without a signal.</li>
+  <li><strong>Click means down and up on the same object.</strong> A drag from A to B is a click on neither, but their shared <code>slots</code> group gets one, as a DOM click goes to the common ancestor.</li>
+  <li><strong>Disposal.</strong> When a hovered or captured box is unmounted, it is dropped without a <code>pointerout</code>: its owner is gone, so its handlers must not run. The component clears its own hover state with <code>onCleanup</code>.</li>
+</ul>
+<output id="event-status" aria-live="polite"></output>
+
 <p><a href="three-renderer.js">View the renderer</a> · <a href="three.jsx">View the scene</a> · <a href="../../">Back to the main demo</a></p>
 <script src="../../dist/three.js"></script>
 </body>
