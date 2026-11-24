@@ -13,13 +13,15 @@ test("three events: raycast, bubble, hover, capture, dispose", async () => {
     page.on("pageerror", error => errors.push(error.message));
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
     await page.goto(new URL("../experiments/three/index.html?manual", import.meta.url).href);
-    await page.locator('button[data-action="swap"]:enabled').waitFor();
+    await page.locator('button[data-events="toggle"]:enabled').waitFor();
+    // The mouse can only reach what is in the viewport.
+    await page.locator("#events-canvas").evaluate(canvas => canvas.scrollIntoView({ block: "center" }));
 
-    const run = (name, ...args) => page.evaluate(([n, a]) => window.__three[n](...a), [name, args]);
+    const run = (name, ...args) => page.evaluate(([n, a]) => window.__events[n](...a), [name, args]);
     const settle = () => run("commit");
     const A = await run("screenOf", "A");
     const B = await run("screenOf", "B");
-    const box = await page.locator("canvas").first().boundingBox();
+    const box = await page.locator("#events-canvas").boundingBox();
     const empty = { x: box.x + 20, y: box.y + 20 };
     const floor = await run("screenOf", "fixed");
 
@@ -31,12 +33,12 @@ test("three events: raycast, bubble, hover, capture, dispose", async () => {
     s = await settle();
     assert.equal(s.events.hovered, "A");
     assert.deepEqual(s.events.log.over, { A: 1, B: 0 });
-    assert.deepEqual(s.colors, ["ffd166", "ffffff"]);
+    assert.deepEqual(s.colors, ["ffd166", "2973b2"]);
     await page.mouse.move(B.x, B.y);
     s = await settle();
     assert.equal(s.events.hovered, "B");
     assert.deepEqual(s.events.log.out, { A: 1, B: 0 });
-    assert.deepEqual(s.colors, ["ffffff", "ffd166"]);
+    assert.deepEqual(s.colors, ["e4572e", "ffd166"]);
 
     // Bubbling: A's click reaches the group. B stops propagation.
     await page.mouse.click(A.x, A.y);
