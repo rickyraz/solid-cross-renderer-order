@@ -26,7 +26,7 @@ The experiment shows that a bridge can keep a shared overlay in sync using exist
 
 ## Is this by design? A one-renderer baseline
 
-The same question without the scene renderer: [experiments/baseline](experiments/baseline/baseline.jsx) uses only the DOM renderer and three ways to put a row's label into a shared container. After a swap of the keyed rows:
+The same question without the scene renderer: [experiments/baseline](experiments/baseline/baseline.jsx) ([live page](https://rickyraz.github.io/solid-cross-renderer-order/experiments/baseline/)) uses only the DOM renderer and three ways to put a row's label into a shared container. After a swap of the keyed rows:
 
 | Placement | Host rows | Labels in shared container |
 | --- | --- | --- |
