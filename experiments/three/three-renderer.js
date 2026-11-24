@@ -26,6 +26,23 @@ export function onInstanceDispose(listener) {
   return () => disposeListeners.delete(listener);
 }
 
+// A frame loop in "demand" mode needs to know when Solid changed a scene:
+// a prop was set, or a node was inserted, moved or removed. The listener
+// gets the changed node (or the parent, for insert and remove); rootNodeOf()
+// tells which render() root it belongs to.
+const changeListeners = new Set();
+export function onSceneChange(listener) {
+  changeListeners.add(listener);
+  return () => changeListeners.delete(listener);
+}
+function changed(node) {
+  for (const listener of changeListeners) listener(node);
+}
+export function rootNodeOf(node) {
+  while (node?.parent) node = node.parent;
+  return node;
+}
+
 // Solid holds this wrapper, not the three object. The wrapper is the shadow
 // tree: material, geometry and texture never appear in Object3D.children,
 // but Solid still needs a parent and a next sibling for every node.
@@ -178,7 +195,7 @@ function recreate(instance, args) {
 }
 
 export const {
-  render, createElement, createComponent, insertNode, insert, effect, memo, setProp, spread, mergeProps
+  render, createElement, createComponent, insertNode, insert, effect, memo, setProp, spread, mergeProps, ref, applyRef
 } = createRenderer({
   createElement(tag, staticProps) {
     // Only literal props arrive here. `args={[size(), 1, 1]}` arrives later
@@ -207,6 +224,7 @@ export const {
       if (before !== undefined && JSON.stringify(before) === JSON.stringify(value)) return;
       if (prev === undefined && before === undefined && (value?.length ?? 0) === 0) return;
       recreate(node, value);
+      changed(node);
       return;
     }
     if (name === "attach" && node.attachment && value !== node.props.attach) {
@@ -214,9 +232,11 @@ export const {
       unlink(node);
       node.props.attach = value;
       link(parent, node);
+      changed(node);
       return;
     }
     applyProp(node, name, value);
+    changed(node);
   },
   getParentNode: node => node.parent,
   getFirstChild: node => node.children[0],
@@ -237,6 +257,7 @@ export const {
     parent.children.splice(index, 0, node);
     node.parent = parent;
     if (node.tag !== "#text" && parent.tag !== "#text") link(parent, node);
+    changed(parent);
   },
   removeNode(parent, node) {
     const index = parent.children.indexOf(node);
@@ -245,6 +266,7 @@ export const {
     if (node.tag === "#text") return;
     unlink(node);
     scheduleDispose(node);
+    changed(parent);
   }
 });
 

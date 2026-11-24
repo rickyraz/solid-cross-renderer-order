@@ -107,7 +107,38 @@ What this adds to the renderer's list:
 
 Not measured: load errors and retries, `<Errored>` boundaries, cancelling a load in flight (the fake loader cannot abort), and real network loaders.
 
-Still not covered: JSX types for the catalogue and a per-frame loop.
+### Per-frame loop
+
+Animation needs code that runs every frame, outside Solid's reactivity. Two pieces, again split into a core and a binding:
+
+- [`frame-loop.js`](experiments/three/frame-loop.js): a frame loop with no imports. Each frame it runs its subscribers in order, calls a `beforeRender` hook, and draws. Its modes are `always`, `demand` (draw only after `invalidate()`, or while an animating subscriber is active) and `never` (step with `advance()`).
+- [`use-frame.js`](experiments/three/use-frame.js): the Solid binding, two functions. `useFrame(loop, callback)` unsubscribes when the component unmounts. `createSolidFrameLoop()` passes Solid's `flush()` as `beforeRender`.
+
+The scene ([`frame-scene.jsx`](experiments/three/frame-scene.jsx)) spins 100 boxes. A hidden probe writes the frame number to a signal in a frame callback and reads it back from three when the frame is drawn. Results (`test/three-frame.test.mjs`, frames stepped one by one):
+
+| Check | Result |
+| --- | --- |
+| A signal written in a frame callback, with `flush()` before render | Reaches three in the same frame: lag 0 |
+| The same without `flush()` | One frame late: lag 1. Solid 2 applies writes in a microtask, which runs after the frame is drawn. |
+| Imperative: 100 callbacks set `rotation` on the three object | Update phase about 0.02 ms per frame |
+| Signal: 1 callback writes `time`, 100 `rotation` props read it | Update phase about 0.12 ms per frame, about 6× more, but well under the render time (about 0.33 ms here) |
+| Unmounting the spinners | All 100 callbacks unsubscribe |
+| `demand` mode, nothing changing | No frames |
+| `demand` mode, one prop change | One frame, then the loop sleeps |
+| `demand` mode with the probe on | The loop never sleeps: the probe's write changes the scene, and the change asks for the next frame |
+
+The times come from headless Chromium with software WebGL (SwiftShader) on one machine. They show the ratio, not real-world cost.
+
+What this adds to the renderer's list:
+
+11. **A change hook.** For `demand` mode, the renderer reports every prop set, insert and remove (`onSceneChange`), and `rootNodeOf()` tells which `render()` root changed. Solid has no "something in this tree changed" signal of its own.
+12. **`flush()` belongs before render.** Without it, every signal written in a frame callback is drawn one frame late.
+13. **Feedback in `demand` mode.** A frame callback that writes a signal the scene reads keeps the loop running forever. To animate, mutate three objects directly (no change, no invalidation), or accept that the loop stays awake while that component is mounted.
+14. **Refs need exporting.** The compiler imports `ref` from the renderer module as soon as a scene uses `ref={...}`, and the ref receives the renderer's node, not the three object (`node.object`).
+
+Not measured: subscriber priorities and render takeover (R3F's `useFrame(cb, priority)`), many render roots sharing one loop, thousands of objects, and real GPUs.
+
+Still not covered: JSX types for the catalogue.
 
 ## Build and test
 
